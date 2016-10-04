@@ -196,32 +196,5 @@ Writer-Monad {W} {m} = record { return = λ x -> runWriter (x , id m)
                         ; right-id = λ m₁ → wright-id
                         ; assoc = λ {A} {B} {C} {a} {b} -> wassoc {W} {m} {A} {B} {C} {a} {b} }
 
--- 6. Реализуйте sscanf.
-
-data FmtData : Set where
-  num : FmtData
-  bool : FmtData
-
-FmtRes : List FmtData -> Set
-FmtRes [] = List Char
-FmtRes (num ∷ xs) = ℕ × FmtRes xs
-FmtRes (bool ∷ xs) = Bool × FmtRes xs
-
-string-toFmtData : List Char → List FmtData
-string-toFmtData [] = []
-string-toFmtData ('%' ∷ 'd' ∷ xs) = num ∷ string-toFmtData xs
-string-toFmtData ('%' ∷ 'b' ∷ xs) = bool ∷ string-toFmtData xs
-string-toFmtData (x ∷ xs) = string-toFmtData xs
-
-sscanf : List Char -> (fmt : List Char) -> FmtRes (string-toFmtData fmt)
-sscanf xs [] = []
-sscanf xs (x ∷ fmt) = {!   !}
-
-
--- sscanf "" "%d"
-
-
-
-
 
 --
