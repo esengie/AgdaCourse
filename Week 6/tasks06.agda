@@ -98,23 +98,34 @@ record Differ (A : Set) : Set where
     f2 : A
     p : ¬ f1 ≡ f2
 
-findDiffering :  {A : Set} -> DecEq A → (xs : List A) → Maybe (Differ A)
-findDiffering p [] = Nothing
-findDiffering p (x ∷ []) = Nothing
-findDiffering p (x ∷ x₁ ∷ xs) with p x x₁
-findDiffering p (x ∷ x₁ ∷ xs) | yes p₁ = findDiffering p xs
-findDiffering p (x ∷ x₁ ∷ xs) | no ¬p = Just (differ x x₁ ¬p)
+head : {A : Set} -> A -> List A -> A
+head x [] = x
+head _ (x ∷ xs) = x
+
+findDiffering :  {A : Set} -> DecEq A → (x : A) -> (xs : List A) -> ¬ xs ≡ repeat {A} (length xs) (head x xs) → Differ A
+findDiffering p x [] p2 with p2 refl
+... | ()
+findDiffering p x (x₁ ∷ []) p2 with p2 refl
+... | ()
+findDiffering p x (x₁ ∷ x₂ ∷ xs) p2 with p x₁ x₂
+findDiffering p x (x₁ ∷ x₂ ∷ xs) p2 | yes p₁ = findDiffering p x (x₂ ∷ xs)
+  (λ pr -> p2 (cong (λ ys -> x₁ ∷ ys)
+                    (subst (λ x -> x₂ ∷ xs ≡ x ∷ repeat (foldr (λ _ → suc) 0 xs) x)
+                           (sym p₁)
+                           pr)
+               )
+  )
+findDiffering p x (x₁ ∷ x₂ ∷ xs) p2 | no ¬p = differ x₁ x₂ ¬p
 
 open Σ
 
-lemma : {A : Set} (xs : List A) → DecEq A → Maybe (Result A xs)
-lemma [] p = Just (empty refl)
-lemma (x ∷ []) p = Just (repeated 1 x refl)
-lemma (x ∷ x₁ ∷ xs) p with List-Dec p (x ∷ x₁ ∷ xs) (repeat (length xs + 2) x)
-lemma (x ∷ x₁ ∷ xs) p  | yes p₁ = Just (repeated (length xs + 2) x p₁)
-lemma (x ∷ x₁ ∷ xs) p  | no ¬p with findDiffering p xs
-lemma (x₁ ∷ x₂ ∷ xs) p | no ¬p | Just (differ x y pr) = Just (A-is-not-trivial x y pr)
-lemma (x ∷ x₁ ∷ xs) p  | no ¬p | Nothing = Nothing
+lemma : {A : Set} (xs : List A) → DecEq A → Result A xs
+lemma [] p = empty refl
+lemma (x ∷ []) p = repeated 1 x refl
+lemma (x ∷ x₁ ∷ xs) p with List-Dec p (x ∷ x₁ ∷ xs) (repeat (length (x ∷ x₁ ∷ xs)) x)
+lemma (x ∷ x₁ ∷ xs) p  | yes p₁ = repeated (length (x ∷ x₁ ∷ xs)) x p₁
+lemma (x ∷ x₁ ∷ xs) p  | no ¬p with findDiffering p x (x ∷ x₁ ∷ xs) ¬p
+lemma (x₁ ∷ x₂ ∷ xs) p | no ¬p | differ x y pr = A-is-not-trivial x y pr
 
 
 -- 6. Определите view, представляющий число в виде частного и остатка от деления его на произвольное (неотрицательное) число m.
