@@ -4,6 +4,7 @@ open import Data.Nat hiding (_<_)
 open import Data.List hiding (filter)
 open import Data.Bool
 open import Data.Empty
+open import Data.Unit hiding (_≤_)
 open import Data.Nat.Properties
 open import Data.Nat.Properties.Simple
 open import Relation.Binary.PropositionalEquality
@@ -12,6 +13,20 @@ open import Data.Product
 
 -- 1. Реализуйте любой алгоритм сортировки, используя with для паттерн матчинга на результате сравнения элементов списка.
 
+_<_ : ℕ → ℕ → Bool
+_ < 0 = false
+0 < suc _ = true
+suc x < suc y = x < y
+
+insert : ℕ → List ℕ → List ℕ
+insert x [] = x ∷ []
+insert x (y ∷ ys) with x < y
+... | true = x ∷ y ∷ ys
+... | false =  y ∷ insert x ys
+
+sort : List ℕ -> List ℕ
+sort [] = []
+sort (x ∷ xs) = insert x (sort xs)
 
 
 -- 2. Определите filter через if, а не через with.
@@ -131,10 +146,19 @@ lemma (x₁ ∷ x₂ ∷ xs) p | no ¬p | differ x y pr = A-is-not-trivial x y p
 -- 6. Определите view, представляющий число в виде частного и остатка от деления его на произвольное (неотрицательное) число m.
 --    Реализуйте функцию деления.
 
-_<_ : ℕ → ℕ → Bool
-_ < 0 = false
-0 < suc _ = true
-suc x < suc y = x < y
+data LessThan : ℕ -> ℕ -> Set where
+  less : ∀ n m -> T (n < m) -> LessThan n m
+  eq : ∀ n m -> n ≡ m -> LessThan n m
+  more : ∀ n m -> T (m < n) -> LessThan n m
+
+lessity : (n m : ℕ) -> LessThan n m
+lessity 0 0 = eq 0 0 refl
+lessity (suc n) 0 = more (suc n) 0 tt
+lessity 0 (suc m) = less 0 (suc m) tt
+lessity (suc n) (suc m) with lessity n m
+lessity (suc n) (suc m) | less .n .m p = less (suc n) (suc m) p
+lessity (suc n) (suc m) | eq .n .m p = eq (suc n) (suc m) (cong suc p)
+lessity (suc n) (suc m) | more .n .m p = more (suc n) (suc m) p
 
 data ModView (m : ℕ) : ℕ → Set where
   quot-rem : ∀ q r → T (r < m) → ModView m (r + q * m)
@@ -143,8 +167,29 @@ isPos : ℕ → Bool
 isPos 0 = false
 isPos _ = true
 
-mod-view : (m n : ℕ) → T (isPos m) → ModView m n
-mod-view = {! !}
+lem3 : (r m : ℕ) -> T (r < suc m) -> T (m < r) -> ⊥
+lem3 zero m p1 ()
+lem3 (suc r) zero () p2
+lem3 (suc r) (suc m) p1 p2 = lem3 r m p1 p2
+
+lem4 : (q r m : ℕ) -> r ≡ m -> r + q * m ≡ suc q * m
+lem4 q r m p = subst (λ x -> x + q * m ≡ suc q * m) (sym p) refl
+
+mod-view : (n m : ℕ) →  T (isPos m) → ModView m n
+mod-view n 0 ()
+mod-view 0 (suc m) tt  = quot-rem 0 0 tt
+mod-view (suc n) (suc m) tt with mod-view n (suc m) tt
+-- Проверка r + 1 == m, если да то надо менять q, если нет то r. Третий вариант, а именно r > m невозможен
+mod-view (suc .(r + q * suc m)) (suc m) tt | quot-rem q r p with lessity (suc r) (suc m)
+mod-view (suc .(r + q * suc m)) (suc m) tt | quot-rem q r p | less .(suc r) .(suc m) x = quot-rem q (suc r) x
+mod-view (suc .(r + q * suc m)) (suc m) tt | quot-rem q r p | more .(suc r) .(suc m) x with lem3 r m p x
+... | ()
+mod-view (suc .(r + q * suc m)) (suc m) tt | quot-rem q r p | eq .(suc r) .(suc m) x =
+                  subst (ModView (suc m))
+                        (sym (lem4 q (suc r) (suc m) x))
+                        (quot-rem (suc q) 0 tt)
 
 div : ℕ → (m : ℕ) → T (isPos m) → ℕ
-div n m p = {! !}
+div n zero ()
+div n (suc m) p with mod-view n (suc m) tt
+div .(r + q * suc m) (suc m) p | quot-rem q r x = q
