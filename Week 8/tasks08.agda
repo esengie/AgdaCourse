@@ -152,6 +152,7 @@ sub-isProp f inj_f pB = λ x y → inj_f x y (pB (f x) (f y))
 -- 9. Докажите, что рекурсивно определенное равенство списков является предикатом.
 
 record Prop : Set₁ where
+  constructor prp
   field
     A : Set
     prop : isProp A
@@ -178,17 +179,26 @@ eq-Prop : {A : Set} (_==_ : A → A → Prop) → List A → List A → Prop
 eq-Prop _==_ xs ys = record { A = eq _==_ xs ys ; prop = eq-isProp _==_ xs ys }
 
 -- 10. Докажите, что Σ не является утверждением в общем случае.
+⊤-isProp : isProp ⊤
+⊤-isProp = λ x y → refl
+
+lft : Σ ℕ (λ x -> ⊤) -- Костыль чтобы работало
+lft = (0 , tt)
+
+hlper2 : lft ≡ (_,_ (suc 0) tt) -> ⊥
+hlper2 = λ ()
 
 ∃-isProp : ({A : Set} {B : A → Prop} → isProp (Σ A (λ x → Prop.A (B x)))) → ⊥
-∃-isProp = {!  !}
+∃-isProp p = hlper2 (p {ℕ} {λ x -> prp ⊤ ⊤-isProp } (0 , tt) (1 , tt))
 
 -- 11. Докажите, что если для всех x : A верно, что B x является множеством, то (x : A) → B x также является множеством.
-
+-- isProp : Set → Set
+-- isProp A = (x y : A) → x ≡ y
 isSet : Set → Set
 isSet A = (x y : A) → isProp (x ≡ y)
 
 Π-isSet : {A : Set} {B : A → Set} → ((x : A) → isSet (B x)) → isSet ((x : A) → (B x))
-Π-isSet = {!  !}
+Π-isSet {B = B} p x y x1 y1 = {!   !}
 
 -- 12. Докажите, что Σ сохраняет множества.
 
@@ -201,6 +211,11 @@ isSet A = (x y : A) → isProp (x ≡ y)
 ⊎-isSet = {!  !}
 
 -- 14. Определите по аналогии с Prop тип типов, являющихся множествами.
+
+record Sets : Set₁ where
+  field
+    A : Set
+    set : isSet A
 
 -- 15. Закончите доказательство того, что ℕ является множеством.
 --     Докажите более общее утверждение, что если равенство элементов типа A разрешимо, то A является множеством.
