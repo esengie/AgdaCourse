@@ -18,6 +18,7 @@ postulate
   funExt : {A : Set} {B : A → Set} (f g : (x : A) → B x) → ((x : A) → f x ≡ g x) → f ≡ g
 
 record Functor (F : Set → Set) : Set₁ where
+  constructor fnct
   field
     fmap : {A B : Set} → (A → B) → F A → F B
 
@@ -28,8 +29,19 @@ record Functor (F : Set → Set) : Set₁ where
 State : Set → Set → Set
 State S A = S → S × A
 
+StFmap : {S A B : Set} → (A → B) → State S A → State S B
+StFmap f m st with m st
+StFmap f m st | p1 , p2 = (p1 , f p2)
+
+StFmap-id : {S A : Set} (a : State S A) → StFmap (λ x → x) a ≡ a
+StFmap-id a = funExt (λ st → StFmap (λ x -> x) a st) (λ st -> a st) (λ st -> refl)
+
+StFmap-comp : {S A B C : Set} (f : A → B) (g : B → C) (a : State S A) →
+  StFmap (λ x → g (f x)) a ≡ StFmap g (StFmap f a)
+StFmap-comp f g a = funExt (λ st -> StFmap (λ x -> g (f x)) a st ) (λ st -> StFmap g (StFmap f a) st ) (λ st -> refl)
+
 State-Functor : (S : Set) → Functor (State S)
-State-Functor S = {! !}
+State-Functor S = fnct StFmap StFmap-id StFmap-comp
 
 -- 2. Пусть f : A → B и g : B → C ─ некоторые функции.
 --    Докажите, что если f и g инъективны, то g ∘ f также инъективна.
@@ -189,7 +201,7 @@ hlper2 : lft ≡ (_,_ (suc 0) tt) -> ⊥
 hlper2 = λ ()
 
 ∃-isProp : ({A : Set} {B : A → Prop} → isProp (Σ A (λ x → Prop.A (B x)))) → ⊥
-∃-isProp p = hlper2 (p {ℕ} {λ x -> prp ⊤ ⊤-isProp } (0 , tt) (1 , tt))
+∃-isProp p = hlper2 (p {ℕ} {λ x -> prp ⊤ ⊤-isProp} (0 , tt) (1 , tt))
 
 -- 11. Докажите, что если для всех x : A верно, что B x является множеством, то (x : A) → B x также является множеством.
 -- isProp : Set → Set
@@ -203,18 +215,32 @@ fro f g p x with p
 fro f .f p x | refl = refl
 
 Π-isSet : {A : Set} {B : A → Set} → ((x : A) → isSet (B x)) → isSet ((x : A) → (B x))
-Π-isSet p f g = {! funExt f g ?  !}
+Π-isSet p f g z y = {! funExt (λ x -> z) (λ x -> y) (λ x2 x -> p x (f x) (g x) (fro f g z x) (fro f g y x))  !}
 
 -- 12. Докажите, что Σ сохраняет множества.
-
 
 Σ-isSet : {A : Set} {B : A → Set} → isSet A → ((x : A) → isSet (B x)) → isSet (Σ A B)
 Σ-isSet pA pB (proj₁ , proj₂) (proj₃ , proj₄) = {! cong₂  (pA proj₁ proj₃) ?   !}
 
 -- 13. Докажите, что ⊎ сохраняет множества.
 
+-- uninj2 : {A B : Set} (y : A ⊎ B) ->  Σ B (λ x -> inj₂ x ≡ y) -> B
+-- uninj2 (inj₂ y) p = y
+-- uninj2 (inj₁ x) ( _ , () )
+
+prp2 : {A B : Set} (y z : A) -> inj₂  y ≡ inj₂ z -> y ≡ z
+prp2 y z p with p
+prp2 y .y p | refl = refl
+
+prp1 : {A B : Set} (y z : A) -> inj₁ y ≡ inj₁ z -> y ≡ z
+prp1 y z p with p
+prp1 y .y p | refl = refl
+
 ⊎-isSet : {A B : Set} → isSet A → isSet B → isSet (A ⊎ B)
-⊎-isSet pA pB x y = {!   !}
+⊎-isSet pA pB (inj₁ x) (inj₂ y) = λ x₁ ()
+⊎-isSet pA pB (inj₂ y) (inj₁ x) = λ x₁ ()
+⊎-isSet pA pB (inj₁ x) (inj₁ x₁) = {!   !}
+⊎-isSet pA pB (inj₂ y) (inj₂ y₁) ff gg = {! pB y y₁ (prp2 y y₁ ff) (prp2 y y₁ gg) !}
 
 -- 14. Определите по аналогии с Prop тип типов, являющихся множествами.
 
@@ -251,8 +277,26 @@ suc n == suc m = n == m
 ≡-== (suc n) zero ()
 ≡-== (suc n) (suc m) p = ≡-== n m (cong pred p)
 
+propℕ : (n m : ℕ) -> isProp (T (n == m))
+propℕ zero zero x y = refl
+propℕ zero (suc m) x ()
+propℕ (suc n) zero x ()
+propℕ (suc n) (suc m) x y = (propℕ n m x y)
+
 ℕ-isSet : isSet ℕ
-ℕ-isSet = isSet-lem (λ x y → record { A = T (x == y) ; prop = {!  !} }) ≡-== ==-≡
+ℕ-isSet = isSet-lem (λ x y → record { A = T (x == y) ; prop = propℕ x y }) ≡-== ==-≡
+
+propH : {A : Set} -> (x y : A) -> ((x y : A) -> Dec (x ≡ y)) -> isProp ( x ≡ y )
+propH x y dcd x₁ y₁ with dcd x y
+propH x y dcd x₁ y₁ | yes p = {! p  !}
+propH x y dcd x₁ y₁ | no ¬p = ⊥-elim (¬p x₁)
 
 Hedberg : {A : Set} → ((x y : A) → Dec (x ≡ y)) → isSet A
-Hedberg = {!  !}
+Hedberg p = isSet-lem (λ x y -> record { A = x ≡ y ; prop = propH x y p }) (λ x y p -> p) (λ x y p -> p)
+
+
+
+
+
+
+--
