@@ -197,18 +197,24 @@ hlper2 = λ ()
 isSet : Set → Set
 isSet A = (x y : A) → isProp (x ≡ y)
 
+  -- funExt : {A : Set} {B : A → Set} (f g : (x : A) → B x) → ((x : A) → f x ≡ g x) → f ≡ g
+fro : {A : Set} {B : A → Set} (f g : (x : A) → B x) → f ≡ g -> ((x : A) → f x ≡ g x)
+fro f g p x with p
+fro f .f p x | refl = refl
+
 Π-isSet : {A : Set} {B : A → Set} → ((x : A) → isSet (B x)) → isSet ((x : A) → (B x))
-Π-isSet {B = B} p x y x1 y1 = {!   !}
+Π-isSet p f g = {! funExt f g ?  !}
 
 -- 12. Докажите, что Σ сохраняет множества.
 
+
 Σ-isSet : {A : Set} {B : A → Set} → isSet A → ((x : A) → isSet (B x)) → isSet (Σ A B)
-Σ-isSet = {!  !}
+Σ-isSet pA pB (proj₁ , proj₂) (proj₃ , proj₄) = {! cong₂  (pA proj₁ proj₃) ?   !}
 
 -- 13. Докажите, что ⊎ сохраняет множества.
 
 ⊎-isSet : {A B : Set} → isSet A → isSet B → isSet (A ⊎ B)
-⊎-isSet = {!  !}
+⊎-isSet pA pB x y = {!   !}
 
 -- 14. Определите по аналогии с Prop тип типов, являющихся множествами.
 
