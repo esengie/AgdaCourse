@@ -107,8 +107,6 @@ isInj-isSur-B-A {A} sB f inF surF b = proj₁ (Trunc-rec lem (λ x -> x) (surF b
         lem (x1 , y1) (.x1 , y2) | refl with sB (f x1) b y1 y2
         lem (x1 , y1) (.x1 , .y1) | refl | refl = refl
 
-open ≡-Reasoning
-
 isInj-isSur-isBij : {A B : Set} → isSet B → (f : A → B) → isInj f → isSur f → isBij f
 isInj-isSur-isBij {A} {B} sB f inF surF = (λ y -> proj₁ (isInj-isSur-B-A sB f inF surF y)) ,
  (λ x → lem2 x) ,
@@ -119,8 +117,17 @@ isInj-isSur-isBij {A} {B} sB f inF surF = (λ y -> proj₁ (isInj-isSur-B-A sB f
 
 -- 7. Докажите, что isBij является утверждением.
 
+postulate
+  funExt : {A : Set} {B : A → Set} (f g : (x : A) → B x) → ((x : A) → f x ≡ g x) → f ≡ g
+
+func : {B : Set} (f g : B -> B) -> isSet B -> ( (y : B) -> f y ≡ y) ->  ( (y : B) -> g y ≡ y) -> f ≡ g
+func f g sB pr1 pr2 = {!   !}
+
+props : {B : Set} (f g : B -> B) -> isSet B -> (x1 : (y : B) -> f y ≡ y) -> (x2 : (y : B) -> f y ≡ y) -> x1 ≡ x2
+props = {!   !}
+
 isBij-isProp : {A B : Set} → isSet A → isSet B → (f : A → B) → isProp (isBij f)
-isBij-isProp sA sB f (finv1 , x1 , y1) (finv2 , x2 , y2) = {!   !}
+isBij-isProp sA sB f (finv1 , x1 , y1) (finv2 , x2 , y2) = ?
 
 -- 8. См. Cantor.agda.
 
