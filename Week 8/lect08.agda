@@ -189,7 +189,7 @@ record Prop : Set₁ where
 -- bar f n refl = 0
 
 ≡-isProp : {A : Set} (x y : A) → isProp (x ≡ y)
-≡-isProp x .x refl q = {! !}
+≡-isProp x .x refl q = {! q  !}
 
 -- 6. Множества
 
