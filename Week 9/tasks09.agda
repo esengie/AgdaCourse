@@ -64,13 +64,13 @@ g ∘ f = λ x → g (f x)
 ∘-sur f g surf surg = λ y → Trunc-rec (λ x y₁ → trunc x y₁)
                                       (λ x → Trunc-rec
                                              (λ x₁ y₁ → trunc x₁ y₁)
-                                             (λ x₁ → ∣ ( proj₁ x₁ , trans (cong g (proj₂ x₁)) (proj₂ x) )  ∣ )
+                                             (λ x₁ → ∣ ( proj₁ x₁ , trans (cong g (proj₂ x₁)) (proj₂ x) ) ∣ )
                                              (surf (proj₁ x))) (surg y)
 
 ∘-sur' : {A B C : Set} (f : A → B) (g : B → C) → isSur (g ∘ f) → isSur g
 ∘-sur' {A} {B} {C} f g surComp = λ y → lem y (surComp y)
   where lem : (y : C) -> ∃ A (λ x → g (f x) ≡ y) -> ∃ B (λ x → g x ≡ y)
-        lem y sfg = {!   !}
+        lem y sfg = Trunc-rec trunc (λ x → ∣ (f (proj₁ x)) , proj₂ x ∣) sfg
 
 -- ∘-sur' f g surComp = λ y → ∣ Trunc-rec (λ x z → {!   !}) (λ x → (f (proj₁ x)) , proj₂ x) (surComp y) ∣
 
@@ -97,20 +97,30 @@ sigmaExt refl q = cong (_,_ _) q
 
 -- (x y : Σ A B) (x₁ y₁ : x ≡ y) → x₁ ≡ y₁
 
-isInj-isSur-B-A : {A B : Set} → isSet A -> isSet B → (f : A → B) → isInj f → isSur f → (y : B) -> Σ[ x ∶ A ] ( f x ≡ y )
-isInj-isSur-B-A {A} sA sB f inF surF b = Trunc-rec lem (λ x → x) (surF b)
-  where lem : isProp (Σ A (λ z → f z ≡ b))
-        lem (x1 , x2) (y1 , y2) = {! sB  !}
+hlpr1 : {A : Set} {a b c : A} -> a ≡ b -> c ≡ b -> a ≡ c
+hlpr1 p1 p2 = trans p1 (sym p2)
 
-isInj-isSur-isBij : {A B : Set} → isSet A -> isSet B → (f : A → B) → isInj f → isSur f → isBij f
-isInj-isSur-isBij sA sB f inF surF = (λ y -> proj₁ (isInj-isSur-B-A sA sB f inF surF y)) ,
- (λ x → {!   !}) ,
- (λ y -> proj₂ (isInj-isSur-B-A sA sB f inF surF y) )
+isInj-isSur-B-A : {A B : Set} → isSet B → (f : A → B) → isInj f → isSur f → (y : B) -> Σ[ x ∶ A ] ( f x ≡ y )
+isInj-isSur-B-A {A} sB f inF surF b = proj₁ (Trunc-rec lem (λ x -> x) (surF b)) , proj₂ (Trunc-rec lem (λ x -> x) (surF b))
+  where lem : isProp (Σ A (λ z → f z ≡ b))
+        lem (x1 , y1) (x2 , y2) with inF x1 x2 (hlpr1 y1 y2)
+        lem (x1 , y1) (.x1 , y2) | refl with sB (f x1) b y1 y2
+        lem (x1 , y1) (.x1 , .y1) | refl | refl = refl
+
+open ≡-Reasoning
+
+isInj-isSur-isBij : {A B : Set} → isSet B → (f : A → B) → isInj f → isSur f → isBij f
+isInj-isSur-isBij {A} {B} sB f inF surF = (λ y -> proj₁ (isInj-isSur-B-A sB f inF surF y)) ,
+ (λ x → lem2 x) ,
+ (λ y -> proj₂ (isInj-isSur-B-A sB f inF surF y)) -- proj₂ (isInj-isSur-B-A sA sB f inF surF y)
+ where lem2 : (x : A) -> proj₁ (isInj-isSur-B-A sB f inF surF (f x)) ≡ x
+       lem2 x with (isInj-isSur-B-A sB f inF surF (f x))
+       lem2 x | proj₁ , proj₂ = inF proj₁ x proj₂
 
 -- 7. Докажите, что isBij является утверждением.
 
 isBij-isProp : {A B : Set} → isSet A → isSet B → (f : A → B) → isProp (isBij f)
-isBij-isProp sA sB f x y =  {!   !}
+isBij-isProp sA sB f (finv1 , x1 , y1) (finv2 , x2 , y2) = {!   !}
 
 -- 8. См. Cantor.agda.
 
