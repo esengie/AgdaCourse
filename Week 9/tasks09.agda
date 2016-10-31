@@ -18,7 +18,7 @@ open import Trunc
 ∃-intro a b = ∣ (a , b) ∣
 
 ∃-elim : {A : Set} {B : A → Set} {C : Set} → isProp C → ((a : A) → B a → C) → ∃ A B → C
-∃-elim = {!  !}
+∃-elim prC baC = λ x → Trunc-rec prC (λ x₁ → baC (proj₁ x₁) (proj₂ x₁))  x
 
 syntax ∃ A (λ x → B) = ∃[ x ∶ A ] B
 
@@ -61,10 +61,18 @@ _∘_ : {A B C : Set} → (B → C) → (A → B) → A → C
 g ∘ f = λ x → g (f x)
 
 ∘-sur : {A B C : Set} (f : A → B) (g : B → C) → isSur f → isSur g → isSur (g ∘ f)
-∘-sur = {! !}
+∘-sur f g surf surg = λ y → Trunc-rec (λ x y₁ → trunc x y₁)
+                                      (λ x → Trunc-rec
+                                             (λ x₁ y₁ → trunc x₁ y₁)
+                                             (λ x₁ → ∣ ( proj₁ x₁ , trans (cong g (proj₂ x₁)) (proj₂ x) )  ∣ )
+                                             (surf (proj₁ x))) (surg y)
 
 ∘-sur' : {A B C : Set} (f : A → B) (g : B → C) → isSur (g ∘ f) → isSur g
-∘-sur' = {! !}
+∘-sur' {A} {B} {C} f g surComp = λ y → lem y (surComp y)
+  where lem : (y : C) -> ∃ A (λ x → g (f x) ≡ y) -> ∃ B (λ x → g x ≡ y)
+        lem y sfg = {!   !}
+
+-- ∘-sur' f g surComp = λ y → ∣ Trunc-rec (λ x z → {!   !}) (λ x → (f (proj₁ x)) , proj₂ x) (surComp y) ∣
 
 -- 6. Докажите, что функция является биекцией тогда и только тогда, когда она является инъекцией и сюръекцией.
 
