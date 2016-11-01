@@ -43,12 +43,34 @@ Subs A = A → hProp
 -- "существует инъекция из A в Subs A" и "не существует сюръекции из A в Subs A".
 
 Cantor₁ = (A : Set) → isSet A → Σ[ f ∶ (A → Subs A) ] (isInj f)
-Cantor₂ = (A : Set) (f : A → Subs A) → isSur f → ⊥
+Cantor₂ = (A : Set) (f : A → Subs A) → isSur f -> ⊥
+
 
 -- Докажите теорему Кантора.
+fun : {A : Set} -> isSet A -> A -> Subs A
+fun sA x = λ y → prop (x ≡ y) ((λ x₁ y₁ → sA x y x₁ y₁))
+
+lma : {A : Set} -> (sA : isSet A) ->
+                   isInj (fun sA)
+lma sA x y z with cong-app z x
+... | v = {!   !}
 
 cantor₁ : Cantor₁
-cantor₁ A sA = (λ se el → {! (x : el)  !}) , {!   !}
+cantor₁ A sA = fun sA , lma sA
+
+⊥-isProp : isProp ⊥
+⊥-isProp = λ x ()
 
 cantor₂ : Cantor₂
-cantor₂ A f = {! !}
+cantor₂ A f y = Trunc-rec h1 h2 (y (λ x → prop ⊥ ⊥-isProp))
+  where h1 : (x y₁ : ⊥) → x ≡ y₁
+        h1 ()
+        h2 : Σ A (λ x → f x ≡ (λ x₁ → prop ⊥ ⊥-isProp)) → ⊥
+        h2 (x , ())
+
+
+
+
+
+
+--
