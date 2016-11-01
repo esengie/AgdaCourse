@@ -45,15 +45,14 @@ Subs A = A → hProp
 Cantor₁ = (A : Set) → isSet A → Σ[ f ∶ (A → Subs A) ] (isInj f)
 Cantor₂ = (A : Set) (f : A → Subs A) → isSur f -> ⊥
 
-
 -- Докажите теорему Кантора.
 fun : {A : Set} -> isSet A -> A -> Subs A
-fun sA x = λ y → prop (x ≡ y) ((λ x₁ y₁ → sA x y x₁ y₁))
+fun sA x y = prop (x ≡ y) ((λ x₁ y₁ → sA x y x₁ y₁))
 
 lma : {A : Set} -> (sA : isSet A) ->
                    isInj (fun sA)
-lma sA x y z with cong-app z x
-... | v = {!   !}
+lma sA x y z with (cong hProp.A (cong-app z y)) | hProp.A (fun sA x y) | hProp.proof (fun sA x y)
+lma sA x y z | c | v | w = {! v  !}
 
 cantor₁ : Cantor₁
 cantor₁ A sA = fun sA , lma sA
