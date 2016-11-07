@@ -32,13 +32,17 @@ f-inv n m (inj₂ y) = raise n y
 f-toleft : (n m : ℕ) (x : Fin (n + m)) → f-inv n m (f n m x) ≡ x
 f-toleft zero m x = refl
 f-toleft (suc n) m zero = refl
-f-toleft (suc n) m (suc x) = {!   !}
+f-toleft (suc n) m (suc x) with (f n m x)
+f-toleft (suc n) m (suc x) | inj₁ y = cong suc {!    !}
+f-toleft (suc n) m (suc x) | inj₂ y = {!   !}
 
 f-toright : (n m : ℕ) (y : Fin n ⊎ Fin m) → f n m (f-inv n m y) ≡ y
 f-toright _ m (inj₁ zero) = refl
-f-toright (suc n) m (inj₁ (suc x)) = {!   !}
+f-toright (suc n) m (inj₁ (suc x)) with f-toright n m (inj₁ x)
+... | v = {! cong suc v  !}
 f-toright zero m (inj₂ y) = refl
-f-toright (suc n) m (inj₂ y) = {!   !}
+f-toright (suc n) m (inj₂ y) with f-toright n m (inj₂ y)
+... | v = {!   !}
 
 f-isBij : (n m : ℕ) -> isBij (f n m)
 f-isBij n m = (f-inv n m) , (f-toleft n m) , f-toright n m
@@ -50,11 +54,20 @@ Fin-sum n m = SetExt ((f n m , f-isBij n m))
 sigmaExt : {A : Set} {B : A → Set} {a a' : A} {b : B a} {b' : B a'} (p : a ≡ a') → subst B p b ≡ b' → _≡_ {A = Σ A B} (a , b) (a' , b')
 sigmaExt refl q = cong (_,_ _) q
 
+open Lift
+
+-- Технический долг =)
+sigma-isSet : {A : Set} {B : A → Set} → isSet A → ((x : A) → isSet (B x)) → isSet (Σ A B)
+sigma-isSet pA pB (proj₁ , proj₂) (proj₃ , proj₄) = {!   !}
+
+issetbij' : (A B : Set) -> isSet ((Bij A B))
+issetbij' A B = sigma-isSet (SmallTypesAreSets (A -> B)) (λ z -> SmallTypesAreSets _)
+
 issetbij : (A B : Set) -> isSet (Lift (Bij A B))
-issetbij A B = {!   !}
+issetbij A B = {! ?  !}
 
 Set-isGpd : (A B : Set) → isSet (A ≡ B)
-Set-isGpd A B =  subst isSet (sym (strong-SetExt)) (issetbij A B)
+Set-isGpd A B =  subst isSet (sym (strong-SetExt)) (issetbij A B) -- Lift (Bij A B) ≡ (A ≡ B) --> isSet left -> isSet Right
 
 -- 3. Докажите, что аксиома K не выполняется для множеств.
 
