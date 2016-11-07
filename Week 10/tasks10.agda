@@ -51,7 +51,7 @@ sigmaExt : {A : Set} {B : A → Set} {a a' : A} {b : B a} {b' : B a'} (p : a ≡
 sigmaExt refl q = cong (_,_ _) q
 
 issetbij : (A B : Set) -> isSet (Lift (Bij A B))
-issetbij A B = {!    !}
+issetbij A B = {!   !}
 
 Set-isGpd : (A B : Set) → isSet (A ≡ B)
 Set-isGpd A B =  subst isSet (sym (strong-SetExt)) (issetbij A B)
@@ -119,14 +119,15 @@ aut2-g false = SetExt (not , not , not-not , not-not)
 
 rightBool : (y : Bool₁) -> aut2-f (aut2-g y) ≡ y
 rightBool true = refl
-rightBool false = {!   !}
+rightBool false = cong lft ( {!   !})
+
+-- ≡-fun (proj₁ SetUni (not , not , not-not , not-not)) ≡ (f true = false)
 
 leftBool : (x : Bool ≡ Bool) → aut2-g (aut2-f x) ≡ x
-leftBool = {!   !}
+leftBool x = {!   !}
 
 aut-Bool : (Bool ≡ Bool) ≡ Bool₁
 aut-Bool = SetExt (aut2-f , aut2-g , leftBool , rightBool)
-
 
 -- 7. Докажите, что группа автоморфизмов в общем случае не коммутативна.
 
@@ -166,10 +167,19 @@ aut-h2 thr = refl
 -- (aut1 (aut2 one)) == two
 -- (aut2 (aut1 one)) == thr
 
-hlpr : (SetExt (aut1 , aut1 , aut-h1 , aut-h1) **' SetExt (aut2 , aut2 , aut-h2 , aut-h2)) ≡
-       (SetExt (aut2 , aut2 , aut-h2 , aut-h2) **' SetExt (aut1 , aut1 , aut-h1 , aut-h1)) ->
+alter : ∀ {l} {A : Set l} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+alter p refl = p
+
+
+hlpr2 : alter (SetExt (aut1 , aut1 , aut-h1 , aut-h1)) (SetExt (aut2 , aut2 , aut-h2 , aut-h2)) ≡
+       alter (SetExt (aut2 , aut2 , aut-h2 , aut-h2)) (SetExt (aut1 , aut1 , aut-h1 , aut-h1)) ->
     (λ x -> aut1 (aut2 x)) ≡ (λ x -> aut2 (aut1 x))
-hlpr = {!   !}
+hlpr2 p = {!   !}
+
+hlpr : SetExt (aut1 , aut1 , aut-h1 , aut-h1) **' SetExt (aut2 , aut2 , aut-h2 , aut-h2) ≡
+       SetExt (aut2 , aut2 , aut-h2 , aut-h2) **' SetExt (aut1 , aut1 , aut-h1 , aut-h1) ->
+    (λ x -> aut1 (aut2 x)) ≡ (λ x -> aut2 (aut1 x))
+hlpr p = {!   !}
 
 aut-is-not-comm : ((A : Set) (p q : A ≡ A) → p **' q ≡ q **' p) → ⊥
 aut-is-not-comm f =
