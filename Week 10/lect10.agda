@@ -183,7 +183,6 @@ Set-is-not-a-set f =
       t₂ = cong (λ f → f true) (cong proj₁ t₁)
   in subst T t₂ tt
 
--- 4. Аксиома K.
 
 -- K : {A : Set} (p : A ≡ A) → p ≡ refl
 -- K = ?
